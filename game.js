@@ -1,6 +1,6 @@
 
-const screenWidth = window.innerWidth;
-const screenHeight = window.innerHeight;
+const screenWidth = window.innerWidth>500?500:window.innerWidth;
+const screenHeight = window.innerHeight-4;
 const scoreUI = document.querySelector(".score")
 
 const wrapper = document.querySelector(".wrapper")
@@ -12,12 +12,21 @@ const context = canvas.getContext("2d");
 document.querySelector('body').addEventListener("keydown",(event)=>{
   if(event.key === "ArrowLeft"){
     console.log("ESQUERDA")
-    player.x-=30
+    player.speedX =-0.08
   }
   if(event.key === "ArrowRight"){
     console.log("DIREITA")
-    player.x+=30
+    player.speedX=0.08
   }
+})
+document.querySelector('body').addEventListener("keyup",()=>{
+  console.log("soltou")
+  player.speedX=0;
+  player.accX=1
+})
+
+canvas.addEventListener("click",(event)=>{
+  console.log(event)
 })
 
 let intervalId;
@@ -28,8 +37,10 @@ let time =0;
 
 let player = {
   x: screenWidth / 2,
-  y: screenHeight * 3/4,
-  radius: 50,
+  y: screenHeight * 5/6,
+  speedX: 0,
+  accX: 1,
+  radius: 30,
   color: "blue",
 };
 
@@ -39,31 +50,27 @@ let bombs = []
 
 function spawnFruit(){
   const fruit = {
-    x:Math.random()*screenWidth,
+    x:Math.random()*(screenWidth-60)+30,
     y:0,
-    radius:50,
-    speedY:5,
+    radius:30,
+    speedY:Math.random()*2+3,
+    accY:1,
     despawn:false,
   }
   const randomizer = Math.random()
   if(randomizer<0.3){
-    //spawn orange
     fruit.color="orange"
     fruit.points= 5
   }else if(randomizer<0.6){
-    //spawn maca
     fruit.color="pink"
     fruit.points= 10
   }else if(randomizer<0.8){
-    //spawn melancia
     fruit.color="green"
     fruit.points= 20
   }else if(randomizer<0.95){
-    //spawn morango
     fruit.color="red"
     fruit.points= 30
   }else{
-    //spawn banana
     fruit.color="yellow"
     fruit.points= 200
   }
@@ -72,11 +79,12 @@ function spawnFruit(){
 
 function spawnBomb(){
   const bomb = {
-    x:Math.random()*screenWidth,
+    x:Math.random()*(screenWidth-60)+30,
     y:0,
-    radius:50,
+    radius:30,
     color:"black",
-    speedY:5,
+    speedY:Math.random()*2+3,
+    accY:1,
     despawn:false,
     points:-50,
   }
@@ -109,13 +117,27 @@ function drawnBombs() {
   })
 }
 
+function updatePlayer(){
+  player.x=player.x+player.speedX*player.accX
+  if(player.x<30){
+    player.x=30
+  }
+  if(player.x>screenWidth-30){
+    player.x=screenWidth-30
+  }
+  if(player.speedX!==0){
+    player.accX+=4
+  }
+}
+
 function updateFruits(){
   fruits.forEach(f=>{
     if(f.y>(screenHeight)){
       f.speedY=0
       f.despawn=true
     }
-    f.y+=f.speedY
+    f.y+=f.speedY*f.accY
+    f.accY+=0.01
   })
 }
 
@@ -125,18 +147,17 @@ function updateBombs(){
       b.speedY=0
       b.despawn=true
     }
-    b.y+=b.speedY
+    b.y+=b.speedY*b.accY
+    b.accY+=0.01
   })
 }
 
 function checkFruitColisionWithPlayer(){
-  let colided = false;
   fruits.forEach(fruit=>{
     const distance = Math.sqrt(
       (player.x - fruit.x) ** 2 + (player.y - fruit.y) ** 2
     );
-    colided = distance < player.radius + fruit.radius
-    if(colided){
+    if(distance < player.radius + fruit.radius){
       console.log(fruit.points)
       score+=fruit.points
       fruit.despawn=true;
@@ -146,16 +167,14 @@ function checkFruitColisionWithPlayer(){
 }
 
 function checkBombColisionWithPlayer(){
-  let colided = false;
+  let colided = false
   bombs.forEach(bomb=>{
     const distance = Math.sqrt(
       (player.x - bomb.x) ** 2 + (player.y - bomb.y) ** 2
     );
-    colided = distance < player.radius + bomb.radius
-    if(colided){
-      score-=50
-      bomb.despawn=true
-      updateScore()
+    if(distance < player.radius + bomb.radius){
+      console.log("BOOOMBAAA")
+      colided = true
     }
   })
   return colided
@@ -183,21 +202,32 @@ function checkTime(){
   time++
   if(time%200===0){
     spawnFruit()
+    spawnFruit()
+    spawnFruit()
+    spawnBomb()
     spawnBomb()
   }
 }
 
+function gameOver(){
+  clearInterval(intervalId);
+console.log("PERDEUUU")}
+
 
 function gameLoop() {
+  updatePlayer()
+  updateFruits()
+  updateBombs()
+
   clearScreen()
   drawPlayer()
   drawnFruits()
   drawnBombs()
-  updateFruits()
-  updateBombs()
-  checkFruitColisionWithPlayer()
-  checkBombColisionWithPlayer()
 
+  checkFruitColisionWithPlayer()
+  if(checkBombColisionWithPlayer()){
+    gameOver()
+  }
 
   despawnFruits()
   despawnBombs()
