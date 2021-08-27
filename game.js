@@ -102,6 +102,10 @@ function clearScreen() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+function Image(){
+  context.drawImage(image,canvas.width/2, canvas.height/2)
+}
+
 function drawPlayer() {
   drawCircle(player.x, player.y, player.radius, player.color);
 }
@@ -208,6 +212,8 @@ function checkTime(){
     spawnBomb()
   }
 }
+
+
 
 function gameOver(){
   clearInterval(intervalId);
