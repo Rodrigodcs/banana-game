@@ -2,6 +2,7 @@
 const screenWidth = window.innerWidth>500?500:window.innerWidth;
 const screenHeight = window.innerHeight-4;
 const scoreUI = document.querySelector(".score")
+const livesUI = document.querySelector(".lives")
 
 const wrapper = document.querySelector(".wrapper")
 const canvas = document.querySelector("#canvas");
@@ -9,14 +10,46 @@ canvas.width = screenWidth;
 canvas.height = screenHeight;
 const context = canvas.getContext("2d");
 
+const sky = new Image();
+sky.src="./assets/sky.png"
+
+const ground = new Image();
+ground.src="./assets/ground.png"
+
+const alienLeft = new Image();
+alienLeft.src="./assets/alien-left.png"
+
+const alienRight = new Image();
+alienRight.src="./assets/alien-right.png"
+
+const banana = new Image();
+banana.src="./assets/banana.png"
+
+const orange = new Image();
+orange.src="./assets/orange.png"
+
+const apple = new Image();
+apple.src="./assets/red-apple.png"
+
+const watermelon = new Image();
+watermelon.src="./assets/watermelon.png"
+
+const strawberry = new Image();
+strawberry.src="./assets/strawberry.png"
+
+const bombSprite = new Image();
+bombSprite.src="./assets/bomb.png"
+
 document.querySelector('body').addEventListener("keydown",(event)=>{
   if(event.key === "ArrowLeft"){
     console.log("ESQUERDA")
     player.speedX =-0.08
+    player.image=alienLeft
   }
   if(event.key === "ArrowRight"){
     console.log("DIREITA")
     player.speedX=0.08
+    player.image=alienRight
   }
 })
 document.querySelector('body').addEventListener("keyup",()=>{
@@ -39,39 +72,72 @@ let lives = 4;
 
 let time =0;
 
-let player = {
-  x: screenWidth / 2,
-  y: screenHeight * 5/6,
-  speedX: 0,
-  accX: 1,
-  radius: 30,
-  color: backGround,
-};
+class Player{
+  x;
+  y;
+  speedX=0;
+  accX=1;
+  radius=30;
+  image=alienRight;
+  color=backGround;
+  constructor(x,y){
+    this.x=x;
+    this.y=y;
+  }
+  draw() {
+    context.drawImage(this.image,this.x-30, this.y-50,60,100)
+  }
+  update(){
+    this.x=this.x+this.speedX*this.accX
+    if(this.x<30){
+      this.x=30
+    }
+    if(this.x>screenWidth-30){
+      this.x=screenWidth-30
+    }
+    if(this.speedX!==0){
+      this.accX+=4
+    }
+  }
+}
+
+class Fruit{
+  x=Math.random()*(screenWidth-60)+30
+  y=0
+  radius=30
+  color=backGround
+  speedY=Math.random()*2+3
+  accY=1
+  despawn=false
+  constructor(){
+    const randomizer = Math.random()
+    if(randomizer<0.3){
+      fruit.image=orange
+      fruit.points= 5
+    }else if(randomizer<0.6){
+      fruit.image=apple
+      fruit.points= 10
+    }else if(randomizer<0.8){
+      fruit.image=watermelon
+      fruit.points= 20
+    }else if(randomizer<0.95){
+      fruit.image=strawberry
+      fruit.points= 30
+    }else{
+      fruit.image=banana
+      fruit.points= 200
+    }
+  }
+  drawn() {
+    context.drawImage(this.image,this.x-30, this.y-30,60,60)
+  }
+}
+
+const player = new Player(screenWidth / 2,screenHeight * 5/6)
 
 let fruits = []
 
 let bombs = []
-
-const playerImage = new Image();
-playerImage.src="./assets/alien.png"
-
-const banana = new Image();
-banana.src="./assets/banana.png"
-
-const orange = new Image();
-orange.src="./assets/orange.png"
-
-const apple = new Image();
-apple.src="./assets/red-apple.png"
-
-const watermelon = new Image();
-watermelon.src="./assets/watermelon.png"
-
-const strawberry = new Image();
-strawberry.src="./assets/strawberry.png"
-
-const bombSprite = new Image();
-bombSprite.src="./assets/bomb.png"
 
 function spawnFruit(){
   const fruit = {
@@ -126,32 +192,24 @@ function drawCircle(x, y, radius, color) {
 }
 
 function clearScreen() {
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(sky,0, 0,canvas.width,canvas.height*5/6+35)
+  context.drawImage(ground,0,canvas.height*5/6+35,canvas.width, canvas.height*1/6)
 }
 
-
-
 function drawPlayer() {
-  drawCircle(player.x, player.y, player.radius, player.color);
   context.drawImage(playerImage,player.x-30, player.y-50,60,100)
 }
 
 function drawnFruits() {
   fruits.forEach(f=>{
-    drawCircle(f.x, f.y, f.radius, f.color)
     context.drawImage(f.image,f.x-30, f.y-30,60,60)
   })
 }
+
 function drawnBombs() {
   bombs.forEach(b=>{
-    drawCircle(b.x, b.y, b.radius, b.color)
     context.drawImage(b.image,b.x-40, b.y-80,120,120)
   })
-}
-
-function drawGrass(){
-  context.fillStyle = 'green';
-  context.fillRect(0,canvas.height*5/6+50,canvas.width, canvas.height*1/6-50)
 }
 
 function updatePlayer(){
@@ -171,6 +229,7 @@ function updateFruits(){
   fruits.forEach(f=>{
     if(f.y>(screenHeight)){
       lives--
+      updateLives()
       if(lives<=0){
         gameOver()
       }
@@ -233,6 +292,10 @@ function updateScore(){
   scoreUI.innerHTML="Score: "+score
 }
 
+function updateLives(){
+  livesUI.innerHTML="Lives: "+lives
+}
+
 function startGame() {
   
   clearInterval(intervalId);
@@ -258,16 +321,16 @@ console.log("PERDEUUU")}
 
 
 function gameLoop() {
-  updatePlayer()
+  player.update()
   updateFruits()
   updateBombs()
   
 
   clearScreen()
-  drawPlayer()
+  player.draw()
   drawnFruits()
   drawnBombs()
-  drawGrass()
+  
 
   checkFruitColisionWithPlayer()
   if(checkBombColisionWithPlayer()){
