@@ -29,9 +29,13 @@ canvas.addEventListener("click",(event)=>{
   console.log(event)
 })
 
+const backGround = "white"
+
 let intervalId;
 
 let score = 0;
+
+let lives = 4;
 
 let time =0;
 
@@ -41,37 +45,59 @@ let player = {
   speedX: 0,
   accX: 1,
   radius: 30,
-  color: "blue",
+  color: backGround,
 };
 
 let fruits = []
 
 let bombs = []
 
+const playerImage = new Image();
+playerImage.src="./assets/alien.png"
+
+const banana = new Image();
+banana.src="./assets/banana.png"
+
+const orange = new Image();
+orange.src="./assets/orange.png"
+
+const apple = new Image();
+apple.src="./assets/red-apple.png"
+
+const watermelon = new Image();
+watermelon.src="./assets/watermelon.png"
+
+const strawberry = new Image();
+strawberry.src="./assets/strawberry.png"
+
+const bombSprite = new Image();
+bombSprite.src="./assets/bomb.png"
+
 function spawnFruit(){
   const fruit = {
     x:Math.random()*(screenWidth-60)+30,
     y:0,
     radius:30,
+    color:backGround,
     speedY:Math.random()*2+3,
     accY:1,
     despawn:false,
   }
   const randomizer = Math.random()
   if(randomizer<0.3){
-    fruit.color="orange"
+    fruit.image=orange
     fruit.points= 5
   }else if(randomizer<0.6){
-    fruit.color="pink"
+    fruit.image=apple
     fruit.points= 10
   }else if(randomizer<0.8){
-    fruit.color="green"
+    fruit.image=watermelon
     fruit.points= 20
   }else if(randomizer<0.95){
-    fruit.color="red"
+    fruit.image=strawberry
     fruit.points= 30
   }else{
-    fruit.color="yellow"
+    fruit.image=banana
     fruit.points= 200
   }
   fruits.push(fruit)
@@ -82,7 +108,8 @@ function spawnBomb(){
     x:Math.random()*(screenWidth-60)+30,
     y:0,
     radius:30,
-    color:"black",
+    color:backGround,
+    image: bombSprite,
     speedY:Math.random()*2+3,
     accY:1,
     despawn:false,
@@ -102,23 +129,29 @@ function clearScreen() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function Image(){
-  context.drawImage(image,canvas.width/2, canvas.height/2)
-}
+
 
 function drawPlayer() {
   drawCircle(player.x, player.y, player.radius, player.color);
+  context.drawImage(playerImage,player.x-30, player.y-50,60,100)
 }
 
 function drawnFruits() {
   fruits.forEach(f=>{
     drawCircle(f.x, f.y, f.radius, f.color)
+    context.drawImage(f.image,f.x-30, f.y-30,60,60)
   })
 }
 function drawnBombs() {
   bombs.forEach(b=>{
     drawCircle(b.x, b.y, b.radius, b.color)
+    context.drawImage(b.image,b.x-40, b.y-80,120,120)
   })
+}
+
+function drawGrass(){
+  context.fillStyle = 'green';
+  context.fillRect(0,canvas.height*5/6+50,canvas.width, canvas.height*1/6-50)
 }
 
 function updatePlayer(){
@@ -137,6 +170,10 @@ function updatePlayer(){
 function updateFruits(){
   fruits.forEach(f=>{
     if(f.y>(screenHeight)){
+      lives--
+      if(lives<=0){
+        gameOver()
+      }
       f.speedY=0
       f.despawn=true
     }
@@ -224,11 +261,13 @@ function gameLoop() {
   updatePlayer()
   updateFruits()
   updateBombs()
+  
 
   clearScreen()
   drawPlayer()
   drawnFruits()
   drawnBombs()
+  drawGrass()
 
   checkFruitColisionWithPlayer()
   if(checkBombColisionWithPlayer()){
@@ -239,6 +278,7 @@ function gameLoop() {
   despawnBombs()
 
   checkTime()
+  console.log(lives)
 }
 
 startGame();
