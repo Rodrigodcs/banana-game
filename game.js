@@ -112,24 +112,48 @@ class Fruit{
   constructor(){
     const randomizer = Math.random()
     if(randomizer<0.3){
-      fruit.image=orange
-      fruit.points= 5
+      this.image=orange
+      this.points= 5
     }else if(randomizer<0.6){
-      fruit.image=apple
-      fruit.points= 10
+      this.image=apple
+      this.points= 10
     }else if(randomizer<0.8){
-      fruit.image=watermelon
-      fruit.points= 20
+      this.image=watermelon
+      this.points= 20
     }else if(randomizer<0.95){
-      fruit.image=strawberry
-      fruit.points= 30
+      this.image=strawberry
+      this.points= 30
     }else{
-      fruit.image=banana
-      fruit.points= 200
+      this.image=banana
+      this.points= 200
     }
   }
   drawn() {
     context.drawImage(this.image,this.x-30, this.y-30,60,60)
+  }
+  update(){
+    if(this.y>(screenHeight)){
+      lives--
+      updateLives()
+      if(lives<=0){
+        gameOver()
+      }
+      this.speedY=0
+      this.despawn=true
+    }
+    this.y+=this.speedY*this.accY
+    this.accY+=0.01
+  }
+  checkColision(player){
+    const distance = Math.sqrt(
+      (player.x - this.x) ** 2 + (player.y - this.y) ** 2
+    );
+    if(distance < player.radius + this.radius){
+      console.log(this.points)
+      score+=this.points
+      this.despawn=true;
+      updateScore()
+    }
   }
 }
 
@@ -138,36 +162,6 @@ const player = new Player(screenWidth / 2,screenHeight * 5/6)
 let fruits = []
 
 let bombs = []
-
-function spawnFruit(){
-  const fruit = {
-    x:Math.random()*(screenWidth-60)+30,
-    y:0,
-    radius:30,
-    color:backGround,
-    speedY:Math.random()*2+3,
-    accY:1,
-    despawn:false,
-  }
-  const randomizer = Math.random()
-  if(randomizer<0.3){
-    fruit.image=orange
-    fruit.points= 5
-  }else if(randomizer<0.6){
-    fruit.image=apple
-    fruit.points= 10
-  }else if(randomizer<0.8){
-    fruit.image=watermelon
-    fruit.points= 20
-  }else if(randomizer<0.95){
-    fruit.image=strawberry
-    fruit.points= 30
-  }else{
-    fruit.image=banana
-    fruit.points= 200
-  }
-  fruits.push(fruit)
-}
 
 function spawnBomb(){
   const bomb = {
@@ -202,7 +196,7 @@ function drawPlayer() {
 
 function drawnFruits() {
   fruits.forEach(f=>{
-    context.drawImage(f.image,f.x-30, f.y-30,60,60)
+    f.drawn()
   })
 }
 
@@ -227,17 +221,7 @@ function updatePlayer(){
 
 function updateFruits(){
   fruits.forEach(f=>{
-    if(f.y>(screenHeight)){
-      lives--
-      updateLives()
-      if(lives<=0){
-        gameOver()
-      }
-      f.speedY=0
-      f.despawn=true
-    }
-    f.y+=f.speedY*f.accY
-    f.accY+=0.01
+    f.update()
   })
 }
 
@@ -254,15 +238,7 @@ function updateBombs(){
 
 function checkFruitColisionWithPlayer(){
   fruits.forEach(fruit=>{
-    const distance = Math.sqrt(
-      (player.x - fruit.x) ** 2 + (player.y - fruit.y) ** 2
-    );
-    if(distance < player.radius + fruit.radius){
-      console.log(fruit.points)
-      score+=fruit.points
-      fruit.despawn=true;
-      updateScore()
-    }
+    fruit.checkColision(player)
   })
 }
 
@@ -305,9 +281,7 @@ function startGame() {
 function checkTime(){
   time++
   if(time%200===0){
-    spawnFruit()
-    spawnFruit()
-    spawnFruit()
+    fruits.push(new Fruit())
     spawnBomb()
     spawnBomb()
   }
@@ -341,7 +315,6 @@ function gameLoop() {
   despawnBombs()
 
   checkTime()
-  console.log(lives)
 }
 
 startGame();
