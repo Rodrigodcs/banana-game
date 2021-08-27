@@ -35,7 +35,7 @@ body{
   justify-content: center;
   width:50%;
   height: 100%;
-  background-color: lightblue;
+  background-color: rgb(96, 187, 218);
   border-right:1px solid orange;
 }
 
@@ -45,7 +45,7 @@ body{
   justify-content: center;
   width:50%;
   height: 100%;
-  background-color: lightblue;
+  background-color: rgb(96, 187, 218);
   border-left:1px solid orange;
 }
 
@@ -57,9 +57,4 @@ body{
 .lives{
   font-size: 50px;
   color:white;
-}
-
-canvas{
-  background-color: white;
-  
 }
